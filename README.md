@@ -1,4 +1,5 @@
-# run-ssh-commands
+# SSH Scripter
+
 Run SSH commands based on config files
 
 Build: `make`
