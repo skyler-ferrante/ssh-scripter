@@ -34,8 +34,11 @@ struct node* get_lines(char* filename){
 		}
 
 		return head;
-	}
-	exit(-1);
+	}else{
+		fprintf(stderr, "Can't read file\n");
+		fprintf(stderr, "Exiting\n");
+		exit(-1);
+	}	
 }
 
 void print_lines(struct node* list){
