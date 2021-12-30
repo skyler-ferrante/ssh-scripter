@@ -5,7 +5,8 @@ LDFLAGS += -lssh
 
 NAME = ssh-runner
 SRCS := main.c \
-	config.c
+	config.c \
+	ssh_run.c
 OBJS := $(SRCS:%.c=obj/%.o)
 
 all: dirs $(NAME) 
