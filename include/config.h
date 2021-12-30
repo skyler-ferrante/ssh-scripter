@@ -1,3 +1,7 @@
+/**
+ * Get all lines from a file
+**/
+
 #ifndef CONFIG_H
 #define CONFIG_H
 
@@ -5,19 +9,19 @@
 #include<string.h>
 #include<stdlib.h>
 
-#define MAX_HOST_SIZE 64
+#define MAX_LINE_SIZE 128
 
-struct hnode{
-	char* host;
-	struct hnode* next;
+struct node{
+	char* line;
+	struct node* next;
 };
 
-struct hnode* new_node();
+struct node* new_node();
 
-void add_node(struct hnode* tail, char* host);
+void add_node(struct node* tail, char* line);
 
-struct hnode* get_hosts(char* filename);
+struct node* get_lines(char* filename);
 
-void print_hosts(struct hnode* hosts);
+void print_lines(struct node* ll);
 
 #endif

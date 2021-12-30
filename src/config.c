@@ -1,36 +1,36 @@
 #include "config.h"
 
-struct hnode* new_node(){
-	return (struct hnode*) malloc(sizeof(struct hnode));
+struct node* new_node(){
+	return (struct node*) malloc(sizeof(struct node));
 }
 
-void add_node(struct hnode* tail, char* host){
-	tail->host = strdup(host);
+void add_node(struct node* tail, char* line){
+	tail->line = strdup(line);
 	tail->next = NULL;
 }
 
-struct hnode* get_hosts(char* filename){
+struct node* get_lines(char* filename){
 	FILE* file;
 
 	//If given file is readable
 	if( (file = fopen(filename, "r")) ){
-		char host[MAX_HOST_SIZE];
+		char line[MAX_LINE_SIZE];
 
-		struct hnode* head = new_node();
-		struct hnode* tail = head;
+		struct node* head = new_node();
+		struct node* tail = head;
 		
-		if( fscanf(file, "%s\n", host) != 1){
-			fprintf(stderr, "Cannot read host from %s\n", filename);
+		if( fscanf(file, "%s\n", line) != 1){
+			fprintf(stderr, "Cannot read first line from %s\n", filename);
 			exit(-1);
 		}
 		
-		add_node(tail, host);
+		add_node(tail, line);
 	
-		//While able to read host	
-		while( fscanf(file, "%s\n", host) != EOF ){
+		//While able to read line
+		while( fscanf(file, "%s\n", line) != EOF ){
 			tail->next = new_node();
 			tail = tail->next;
-			add_node(tail, host);
+			add_node(tail, line);
 		}
 
 		return head;
@@ -38,8 +38,8 @@ struct hnode* get_hosts(char* filename){
 	exit(-1);
 }
 
-void print_hosts(struct hnode* hosts){
-	for(; hosts; hosts = hosts->next){
-		printf("%s\n", hosts->host);
+void print_lines(struct node* list){
+	for(struct node* curr = list; curr; curr = curr->next){
+		printf("%s\n", curr->line);
 	}
 }
