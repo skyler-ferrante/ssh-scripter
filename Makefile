@@ -4,10 +4,11 @@ CFLAGS += -Wall -O2 -Iinclude
 LDFLAGS += -lssh
 
 NAME = ssh-runner
-SRCS := main.c
+SRCS := main.c \
+	config.c
 OBJS := $(SRCS:%.c=obj/%.o)
 
-all: dirs $(NAME)
+all: dirs $(NAME) 
 
 dirs:
 	@mkdir -p obj
@@ -22,4 +23,4 @@ $(OBJS): obj/%.o : src/%.c
 
 clean:
 	rm -f $(OBJS)
-	rm $(NAME)
+	rm -f $(NAME)
