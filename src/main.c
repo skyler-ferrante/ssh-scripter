@@ -1,16 +1,18 @@
 #include<stdio.h>
+#include <unistd.h>
+
 #include "config.h"
 #include "ssh_run.h"
 
 //#define LOG_LEVEL SSH_LOG_PROTOCOL
 #define LOG_LEVEL SSH_LOG_NOLOG
-#define PORT 9878 
+#define PORT 9878
 
 //default delay=3000000 (Ubuntu 20.04.3 LTS)
-#define TIMEOUT 3
+#define TIMEOUT 2
 
 int main(int argc, char** argv){
-	ssh_session my_ssh_session = ssh_new();	
+	ssh_session my_ssh_session;
 
 	struct node *hosts, *usernames, *passwords, *commands;
 
@@ -34,15 +36,13 @@ int main(int argc, char** argv){
 	struct node *u, *h, *p, *c;
 
 	for(h = hosts; h; h = h->next){
+		my_ssh_session = ssh_new(); 
 		char* username, *password, *host = h->line;
 		
 		session_init(my_ssh_session, host, PORT, LOG_LEVEL, TIMEOUT); 
 		int rc = connect_session(my_ssh_session, host);
-		if(rc != SSH_OK){
-			printf("Error reconnecting: %s\n", host);
-			rc = SSH_AUTH_AGAIN;
+		if(rc != SSH_OK)
 			break;
-		}
 
 		rc = SSH_AUTH_ERROR;
 
@@ -62,12 +62,12 @@ int main(int argc, char** argv){
 					
 					ssh_disconnect(my_ssh_session);
 					cleanup(my_ssh_session);
+					sleep(1);
 					
 					my_ssh_session = ssh_new();
 					session_init(my_ssh_session, host, PORT, LOG_LEVEL, TIMEOUT);
 					rc = connect_session(my_ssh_session, host);	
 					if(rc != SSH_OK){
-						printf("Error reconnecting: %s\n", host);
 						rc = SSH_AUTH_AGAIN;
 						break;
 					}
@@ -106,9 +106,10 @@ int main(int argc, char** argv){
 				ssh_channel_free(my_channel);
 				cleanup(my_ssh_session);
 				printf("Channel failed with rc %d\n", rc);
+				exit(-1);
 			}
 			
-			while( (nbytes = ssh_channel_read(my_channel, buffer, sizeof(buffer), 0)) ){
+			while( (nbytes = ssh_channel_read(my_channel, buffer, sizeof(buffer), 0)) > 0 ){
 					if ( fwrite(buffer, 1, nbytes, stdout) != nbytes){
 						ssh_channel_close(my_channel);
 						ssh_channel_free(my_channel);
@@ -120,11 +121,9 @@ int main(int argc, char** argv){
 			ssh_channel_close(my_channel);
 			ssh_channel_free(my_channel);
 		}
+		ssh_disconnect(my_ssh_session);
+		cleanup(my_ssh_session);
+		sleep(1);
 	}
 
-	cleanup(my_ssh_session);
-	//print_lines(hosts);
-	//print_lines(usernames);
-	//print_lines(passwords);
-	//print_lines(commands);
 }
