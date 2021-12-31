@@ -4,10 +4,13 @@
 
 //#define LOG_LEVEL SSH_LOG_PROTOCOL
 #define LOG_LEVEL SSH_LOG_NOLOG
+#define PORT 9878 
+
+//default delay=3000000 (Ubuntu 20.04.3 LTS)
+#define TIMEOUT 3
 
 int main(int argc, char** argv){
-	ssh_session my_ssh_session = ssh_new();
-	long timeout = 4;
+	ssh_session my_ssh_session = ssh_new();	
 
 	struct node *hosts, *usernames, *passwords, *commands;
 
@@ -33,10 +36,15 @@ int main(int argc, char** argv){
 	for(h = hosts; h; h = h->next){
 		char* username, *password, *host = h->line;
 		
-		session_init(my_ssh_session, host, 22, LOG_LEVEL, timeout); 
-		connect_session(my_ssh_session, host);
+		session_init(my_ssh_session, host, PORT, LOG_LEVEL, TIMEOUT); 
+		int rc = connect_session(my_ssh_session, host);
+		if(rc != SSH_OK){
+			printf("Error reconnecting: %s\n", host);
+			rc = SSH_AUTH_AGAIN;
+			break;
+		}
 
-		int rc = SSH_AUTH_ERROR;
+		rc = SSH_AUTH_ERROR;
 
 		for(u = usernames; u; u = u->next){
 			for(p = passwords; p; p = p->next){
@@ -50,17 +58,30 @@ int main(int argc, char** argv){
 					break;
 				
 				if( rc == SSH_AUTH_AGAIN ){
-					printf("Too many attempts\n");
-					break;
+					printf("Reconnecting\n");
+					
+					ssh_disconnect(my_ssh_session);
+					cleanup(my_ssh_session);
+					
+					my_ssh_session = ssh_new();
+					session_init(my_ssh_session, host, PORT, LOG_LEVEL, TIMEOUT);
+					rc = connect_session(my_ssh_session, host);	
+					if(rc != SSH_OK){
+						printf("Error reconnecting: %s\n", host);
+						rc = SSH_AUTH_AGAIN;
+						break;
+					}
+
+					rc = SSH_AUTH_ERROR;
 				}
 			}
-
+	
 			if( rc == SSH_AUTH_SUCCESS || rc == SSH_AUTH_AGAIN )
 				break;
 		}
 
-		if( rc == SSH_AUTH_AGAIN )
-			continue;
+		if( rc != SSH_AUTH_SUCCESS )
+		       continue;	
 		
 		printf("SUCCESS: %s,%s,%s\n", host, username, password);
 		

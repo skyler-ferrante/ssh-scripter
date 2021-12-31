@@ -21,9 +21,8 @@ void session_init(ssh_session session, char* host, int port, int verbosity, long
 
 /**
  * Setup channel
- * Exit on fail
 **/
-void connect_session(ssh_session session, char* host);
+int connect_session(ssh_session session, char* host);
 
 /**
  * Create channel

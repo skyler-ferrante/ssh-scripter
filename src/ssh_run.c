@@ -15,7 +15,7 @@ void session_init(ssh_session session, char* host, int port, int verbosity, long
 	ssh_options_set(session, SSH_OPTIONS_TIMEOUT, &timeout);
 }
 
-void connect_session(ssh_session session, char* host){
+int connect_session(ssh_session session, char* host){
 	// Create channel
 	int rc = ssh_connect(session);
 	if( rc != SSH_OK) {
@@ -23,8 +23,8 @@ void connect_session(ssh_session session, char* host){
 			host,
 			ssh_get_error(session)
 		);
-		exit(-1);
 	}
+	return rc;
 }
 
 void create_channel(ssh_session session, ssh_channel* channel){
